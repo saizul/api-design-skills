@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Error",
+    "status": "500",
+    "detail": "Traceback (most recent call last):\n  File \"/var/www/app/db.py\", line 12",
+    "x": 1
+  },
+  {
+    "type": "about:blank",
+    "title": "Oops",
+    "status": 404
+  },
+  "not an object"
+]

@@ -1,0 +1,50 @@
+name: Bug report
+description: A script crashed or gave a wrong result, or a skill gave wrong or outdated advice
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste real secrets, tokens or private API specs.** Reduce the spec to the smallest example that shows the problem.
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Skill
+      options:
+        - rest-api-design
+        - openapi-review
+        - error-responses
+        - pagination-filtering
+        - webhook-design
+        - idempotency-keys
+        - api-security-review
+        - api-changelog-deprecation
+        - api-docs-writer
+        - validator / repository tooling
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: The command you ran or the prompt you gave, and the output.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Minimal input (redacted)
+      description: The smallest OpenAPI snippet or payload that reproduces the problem.
+      render: yaml
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "Claude Code 2.x on macOS, Python 3.12 / Codex CLI on Ubuntu"

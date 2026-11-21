@@ -1,0 +1,98 @@
+openapi: 3.0.3
+info:
+  title: Insecure API
+  version: "1.0"
+servers:
+  - url: http://api.example.com
+  - url: https://staging.example.com
+security:
+  - apiKeyQuery: []
+paths:
+  /accounts/{account_id}:
+    get:
+      operationId: getAccount
+      summary: Get account
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  password:
+                    type: string
+                  profile:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+  /accounts:
+    post:
+      operationId: createAccount
+      summary: Create account
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                callback_url:
+                  type: string
+                  format: uri
+      responses:
+        "201":
+          description: created
+  /reports:
+    get:
+      operationId: listReports
+      summary: List reports
+      security:
+        - oauth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: ok
+  /internal/jobs:
+    delete:
+      operationId: deleteJobs
+      summary: Delete jobs
+      security:
+        - oauth: []
+      responses:
+        "204":
+          description: deleted
+components:
+  securitySchemes:
+    apiKeyQuery:
+      type: apiKey
+      in: query
+      name: api_key
+    basic:
+      type: http
+      scheme: basic
+    oauth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://auth.example.com/authorize
+          scopes:
+            read: read

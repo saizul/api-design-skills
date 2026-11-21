@@ -1,0 +1,25 @@
+{
+  "name": "api-design-skills",
+  "displayName": "API Design Skills",
+  "version": "0.1.0",
+  "description": "Agent Skills for designing, reviewing, securing and documenting HTTP APIs: REST conventions, OpenAPI linting, RFC 9457 errors, pagination, webhooks, idempotency keys, OWASP API Top 10, deprecation headers and docs generation.",
+  "author": {
+    "name": "Saizul Amin",
+    "url": "https://github.com/saizul"
+  },
+  "homepage": "https://github.com/saizul/api-design-skills",
+  "repository": "https://github.com/saizul/api-design-skills",
+  "license": "MIT",
+  "keywords": [
+    "api",
+    "rest",
+    "openapi",
+    "http",
+    "webhooks",
+    "idempotency",
+    "pagination",
+    "owasp",
+    "api-security",
+    "documentation"
+  ]
+}

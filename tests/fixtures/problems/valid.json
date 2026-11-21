@@ -1,0 +1,11 @@
+{
+  "type": "https://api.example.com/problems/validation-error",
+  "title": "Your request is not valid.",
+  "status": 422,
+  "detail": "2 fields are invalid.",
+  "instance": "urn:uuid:5b1f3f4e-8a5c-4c3e-9b7d-3a1f2e4d5c6b",
+  "errors": [
+    {"detail": "must be a valid email address", "pointer": "#/email"},
+    {"detail": "must be at least 1", "pointer": "#/items/0/quantity"}
+  ]
+}

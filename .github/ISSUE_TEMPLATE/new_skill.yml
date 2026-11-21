@@ -1,0 +1,44 @@
+name: New skill proposal
+description: Propose (or offer to write) a new API skill
+labels: ["new skill", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read "Write a skill" in CONTRIBUTING.md first. Good skills are narrow, practical and testable.
+  - type: input
+    id: name
+    attributes:
+      label: Skill name
+      description: lowercase-hyphen, at most 64 characters
+      placeholder: rate-limit-design
+    validations:
+      required: true
+  - type: textarea
+    id: when
+    attributes:
+      label: When should an agent use it?
+      description: Two or three example prompts a developer would type.
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Workflow outline
+      description: The steps the skill would walk through, and what it would output.
+  - type: textarea
+    id: script
+    attributes:
+      label: Helper script (optional)
+      description: Is there a deterministic check or generator that would make the skill more reliable? What would it read and print?
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: RFCs, specs or official docs the advice should follow.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to write this skill

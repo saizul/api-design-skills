@@ -1,0 +1,139 @@
+openapi: 3.0.0
+info:
+  title: Legacy Shop
+paths:
+  /getUsers:
+    get:
+      responses:
+        "200":
+          description: users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+  /users/{userId}/:
+    get:
+      operationId: get_user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: getUserById
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "204":
+          description: deleted
+  /Admin/users:
+    post:
+      operationId: getUserById
+      summary: create admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                avatar_url:
+                  type: string
+      responses:
+        "500":
+          description: error
+  /orders:
+    get:
+      operationId: listOrders
+      summary: List orders
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+        "400":
+          description: bad
+          content:
+            application/json:
+              schema:
+                type: object
+  /products:
+    get:
+      operationId: listProducts
+      summary: List products
+      deprecated: true
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: order_by
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        default:
+          description: error
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        last_name:
+          type: string
+        password_hash:
+          type: string
+        apiKey:
+          type: string

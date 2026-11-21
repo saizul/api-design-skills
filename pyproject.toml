@@ -1,0 +1,19 @@
+# Tooling configuration only; the skills are not a Python package.
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["UP006", "UP007", "UP035", "UP045"]
+
+[tool.ruff.lint.isort]
+known-local-folder = ["conftest", "validate_skills"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff.lint.per-file-ignores]
+# Embedded Node.js / PHP test programs are kept on one line per statement.
+"tests/test_webhook_signature.py" = ["E501"]

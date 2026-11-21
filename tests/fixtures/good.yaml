@@ -1,0 +1,343 @@
+openapi: 3.1.0
+info:
+  title: Orders API
+  version: 1.2.0
+  description: Create and track customer orders. Authenticate with a bearer token.
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+tags:
+  - name: Orders
+    description: Customer orders.
+security:
+  - bearerAuth: []
+paths:
+  /orders:
+    get:
+      operationId: listOrders
+      summary: List orders
+      tags: [Orders]
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+        - name: status
+          in: query
+          description: Only return orders in this status.
+          schema:
+            type: string
+            enum: [pending, paid, cancelled]
+        - name: sort
+          in: query
+          description: Sort field; prefix with - for descending.
+          schema:
+            type: string
+            enum: [created_at, -created_at]
+            default: -created_at
+      responses:
+        "200":
+          description: A page of orders.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderPage"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      operationId: createOrder
+      summary: Create an order
+      tags: [Orders]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Unique key for safely retrying this request.
+          schema:
+            type: string
+            maxLength: 255
+            example: order-cus123-20260115-0001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreate"
+            example:
+              customer_id: cus_123
+              items:
+                - sku: SKU-1
+                  quantity: 2
+      responses:
+        "201":
+          description: The created order.
+          headers:
+            Location:
+              description: URL of the new order.
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /orders/{order_id}:
+    parameters:
+      - name: order_id
+        in: path
+        required: true
+        description: Order identifier.
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getOrder
+      summary: Get an order
+      tags: [Orders]
+      responses:
+        "200":
+          description: The order.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /orders/{order_id}/items:
+    parameters:
+      - name: order_id
+        in: path
+        required: true
+        description: Order identifier.
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: listOrderItems
+      summary: List order items (deprecated)
+      description: Deprecated. Use the items field of getOrder instead.
+      deprecated: true
+      x-sunset: "2030-09-01"
+      tags: [Orders]
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: A page of items.
+          headers:
+            Deprecation:
+              description: RFC 9745 deprecation date.
+              schema:
+                type: string
+                example: "@1772323200"
+            Sunset:
+              description: RFC 8594 sunset date.
+              schema:
+                type: string
+                example: Sun, 01 Sep 2030 00:00:00 GMT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemPage"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /health:
+    get:
+      operationId: getHealth
+      summary: Health check
+      tags: [Operations]
+      security: []
+      responses:
+        "200":
+          description: Service is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          description: Service is unavailable.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Send an API token from the dashboard.
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Page size.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque cursor from next_cursor of the previous page.
+      schema:
+        type: string
+        maxLength: 512
+  schemas:
+    OrderItem:
+      type: object
+      additionalProperties: false
+      required: [sku, quantity]
+      properties:
+        sku:
+          type: string
+          maxLength: 64
+          example: SKU-1
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+    OrderCreate:
+      type: object
+      additionalProperties: false
+      required: [customer_id, items]
+      properties:
+        customer_id:
+          type: string
+          maxLength: 64
+          example: cus_123
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/OrderItem"
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        customer_id:
+          type: string
+          example: cus_123
+        status:
+          type: string
+          enum: [pending, paid, cancelled]
+          example: pending
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-01-15T09:30:00Z"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+    OrderPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        next_cursor:
+          type: [string, "null"]
+          example: null
+        has_more:
+          type: boolean
+          example: false
+    ItemPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        next_cursor:
+          type: [string, "null"]
+          example: null
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid token.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Unauthorized
+            status: 401
+    NotFound:
+      description: Not found.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Not Found
+            status: 404
+    ValidationFailed:
+      description: Validation failed.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: https://api.example.com/problems/validation-error
+            title: Your request is not valid.
+            status: 422
+            errors:
+              - detail: must be at least 1
+                pointer: "#/items/0/quantity"
+    TooManyRequests:
+      description: Rate limited.
+      headers:
+        Retry-After:
+          description: Seconds to wait.
+          schema:
+            type: integer
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Too Many Requests
+            status: 429

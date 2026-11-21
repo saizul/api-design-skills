@@ -1,0 +1,27 @@
+name: Improve a skill
+description: Better advice, a new lint rule, another framework example or clearer docs
+labels: ["enhancement"]
+body:
+  - type: input
+    id: skill
+    attributes:
+      label: Skill
+      placeholder: openapi-review
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is missing or could be better?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: New rule id and severity, new snippet, or the text you would change.
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: Link the RFC, spec section or official docs that back the change.

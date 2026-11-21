@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "api-design-skills",
+  "description": "Agent Skills for designing, reviewing, securing and documenting HTTP APIs: REST conventions, OpenAPI linting, RFC 9457 errors, pagination, webhooks, idempotency keys, OWASP API Top 10, deprecation headers and docs generation.",
+  "owner": {
+    "name": "Saizul Amin",
+    "url": "https://github.com/saizul"
+  },
+  "plugins": [
+    {
+      "name": "api-design-skills",
+      "source": "./",
+      "description": "Agent Skills for designing, reviewing, securing and documenting HTTP APIs: REST conventions, OpenAPI linting, RFC 9457 errors, pagination, webhooks, idempotency keys, OWASP API Top 10, deprecation headers and docs generation.",
+      "category": "development",
+      "tags": [
+        "api",
+        "rest",
+        "openapi",
+        "webhooks",
+        "security"
+      ],
+      "skills": [
+        "./skills/rest-api-design",
+        "./skills/openapi-review",
+        "./skills/error-responses",
+        "./skills/pagination-filtering",
+        "./skills/webhook-design",
+        "./skills/idempotency-keys",
+        "./skills/api-security-review",
+        "./skills/api-changelog-deprecation",
+        "./skills/api-docs-writer"
+      ]
+    }
+  ]
+}

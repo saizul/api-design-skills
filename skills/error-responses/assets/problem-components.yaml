@@ -1,0 +1,119 @@
+# Drop-in OpenAPI 3.1 components for RFC 9457 problem details.
+components:
+  schemas:
+    Problem:
+      type: object
+      description: RFC 9457 problem details.
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          description: Stable identifier for the problem type. Clients branch on this.
+          default: about:blank
+          example: https://api.example.com/problems/validation-error
+        title:
+          type: string
+          description: Short summary that does not change between occurrences.
+          example: Your request is not valid.
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+          description: HTTP status code of this occurrence.
+          example: 422
+        detail:
+          type: string
+          description: Human-readable explanation of this occurrence.
+          example: Quantity must be at least 1.
+        instance:
+          type: string
+          format: uri-reference
+          description: Identifier of this occurrence (quote it to support).
+          example: urn:uuid:5b1f3f4e-8a5c-4c3e-9b7d-3a1f2e4d5c6b
+      additionalProperties: true
+    ValidationProblem:
+      allOf:
+        - $ref: "#/components/schemas/Problem"
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                type: object
+                required: [detail]
+                properties:
+                  detail:
+                    type: string
+                    example: must be at least 1
+                  pointer:
+                    type: string
+                    description: JSON Pointer (RFC 6901) to the invalid member of the request body.
+                    example: "#/items/0/quantity"
+                  parameter:
+                    type: string
+                    description: Name of the invalid query or path parameter.
+  responses:
+    BadRequest:
+      description: The request is malformed.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Bad Request
+            status: 400
+            detail: Request body is not valid JSON.
+    Unauthorized:
+      description: Missing or invalid credentials.
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Unauthorized
+            status: 401
+    NotFound:
+      description: The resource does not exist or is not visible to the caller.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Not Found
+            status: 404
+    ValidationFailed:
+      description: The request is well-formed but not valid.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ValidationProblem"
+          example:
+            type: https://api.example.com/problems/validation-error
+            title: Your request is not valid.
+            status: 422
+            errors:
+              - detail: must be at least 1
+                pointer: "#/items/0/quantity"
+    TooManyRequests:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Too Many Requests
+            status: 429
+            detail: Rate limit of 100 requests per minute exceeded.
