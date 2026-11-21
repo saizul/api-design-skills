@@ -2,4 +2,4 @@
 # Python standard library; PyYAML is needed to read YAML OpenAPI specs.
 pyyaml>=6.0
 pytest>=8.0
-ruff>=0.6
+ruff>=0.17.5
