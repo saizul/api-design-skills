@@ -19,7 +19,7 @@ so they also work in CI.
 | Skill | What it does | Try asking |
 | --- | --- | --- |
 | [rest-api-design](skills/rest-api-design/SKILL.md) | Resource naming, methods, status codes, payload conventions, versioning; outputs an endpoint table and a must/should review checklist | "Design endpoints for subscriptions, plans and invoices." |
-| [openapi-review](skills/openapi-review/SKILL.md) | Lints OpenAPI 3.x (24 rules: operationIds, descriptions, error responses, examples, security, path params, naming) and adds a manual review | "Review our openapi.yaml and fix the gaps." |
+| [openapi-review](skills/openapi-review/SKILL.md) | Lints OpenAPI 3.x (25 rules: operationIds, descriptions, error responses, examples, security, path params, naming, enum casing) and adds a manual review | "Review our openapi.yaml and fix the gaps." |
 | [error-responses](skills/error-responses/SKILL.md) | RFC 9457 problem details: type catalog, validation errors, handlers for Express, FastAPI, Flask, Laravel, PHP; lints error bodies and specs | "Make our API errors consistent and stop leaking stack traces." |
 | [pagination-filtering](skills/pagination-filtering/SKILL.md) | Cursor vs offset, keyset SQL, signed cursors, RFC 8288 Link headers, filter/sort conventions; audits list endpoints | "Our offset pagination is slow after page 500. Fix it." |
 | [webhook-design](skills/webhook-design/SKILL.md) | Event envelope, Standard Webhooks/GitHub/Stripe signatures, retries, dedup, versioning; sign/verify CLI and Node/PHP snippets tested against published vectors | "Write an endpoint that verifies Stripe webhooks." |
@@ -173,7 +173,7 @@ Ideas that would make good contributions (each is a good first issue):
 - [ ] `rate-limit-design` skill: RateLimit headers (IETF draft), 429 handling, quotas per plan
 - [ ] `api-caching` skill: ETag, `Cache-Control`, conditional requests, CDN rules
 - [ ] `graphql-review` skill: schema naming, pagination connections, depth/complexity limits
-- [ ] `openapi-review`: rule for `enum` values with mixed casing
+- [x] `openapi-review`: rule for `enum` values with mixed casing
 - [ ] `openapi-review`: detect duplicate inline schemas that should be `components`
 - [ ] `api-docs-writer`: emit Python `requests` and JavaScript `fetch` examples next to curl
 - [ ] `webhook-design`: Go and Ruby verification snippets with tests
