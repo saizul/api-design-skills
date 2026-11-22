@@ -25,6 +25,7 @@
 | `path-trailing-slash` | warning | `/a` and `/a/` may route differently | Remove the slash |
 | `path-verb` | warning | Actions in URLs hide the resource model | Model as a resource or state change |
 | `property-casing` | warning | Mixed snake_case/camelCase confuses clients | Pick one |
+| `enum-casing` | warning | `[pending, PAID, inReview]` forces clients to special-case values and breaks generated enum names | Pick one style per enum (UPPER_SNAKE_CASE or snake_case are most common); a leading `-` for sort direction is ignored |
 
 Ignore a rule with `--ignore RULE` (repeatable) and say why in the PR.
 

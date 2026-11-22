@@ -143,3 +143,77 @@ def test_cli_ignore_and_list_rules():
 
 def test_help():
     assert run_script(SCRIPT, "--help").returncode == 0
+
+
+@pytest.mark.parametrize(
+    ("value", "style"),
+    [
+        ("paid", "lower"),
+        ("in_progress", "snake"),
+        ("-created_at", "snake"),
+        ("in-progress", "kebab"),
+        ("inProgress", "camel"),
+        ("InProgress", "pascal"),
+        ("IN_PROGRESS", "upper"),
+        ("PAID", "upper"),
+        ("v1.0", None),
+        (3, None),
+        ("Mixed_Case", None),
+    ],
+)
+def test_enum_casing(value, style):
+    assert lint_mod.enum_casing(value) == style
+
+
+@pytest.mark.parametrize(
+    ("values", "mixed"),
+    [
+        (["pending", "paid", "partially_refunded"], False),
+        (["created_at", "-created_at"], False),
+        (["active", "inReview"], False),
+        (["PENDING", "IN_PROGRESS"], False),
+        (["pending", "PAID"], True),
+        (["in_progress", "inReview"], True),
+        (["Draft", "published"], True),
+        ([1, 2, 3], False),
+    ],
+)
+def test_mixed_enum_styles(values, mixed):
+    assert bool(lint_mod.mixed_enum_styles(values)) is mixed
+
+
+def test_enum_casing_rule_locations():
+    spec = {
+        "openapi": "3.1.0",
+        "info": {"title": "t", "version": "1"},
+        "paths": {
+            "/orders": {
+                "get": {
+                    "parameters": [{"name": "status", "in": "query", "schema": {"enum": ["open", "CLOSED"]}}],
+                    "responses": {"200": {"description": "ok"}},
+                }
+            }
+        },
+        "components": {
+            "schemas": {
+                "Order": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "enum": ["pending", "in_progress", "shippedOut"]},
+                        "tags": {"type": "array", "items": {"enum": ["a_b", "c_d"]}},
+                        "state": {"$ref": "#/components/schemas/State"},
+                    },
+                },
+                "State": {"type": "string", "enum": ["Draft", "published"]},
+            }
+        },
+    }
+    found = [f for f in lint_mod.lint(spec) if f["rule"] == "enum-casing"]
+    assert sorted(f["location"] for f in found) == [
+        "GET /orders parameter status",
+        "components.schemas.Order.status",
+        "components.schemas.State",
+    ]
+    assert all(f["severity"] == "warning" for f in found)
+    status = next(f for f in found if f["location"] == "components.schemas.Order.status")
+    assert "camelCase" in status["message"] and "snake_case" in status["message"]

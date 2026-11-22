@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `openapi-review`: `enum-casing` rule (warning) for enums whose values mix casing styles,
+  such as `[pending, PAID, inReview]`, in component schemas (including nested properties,
+  array items and `allOf`/`oneOf`/`anyOf`) and inline parameter schemas.
+
 ## [0.1.0] - 2026-11-21
 
 ### Added

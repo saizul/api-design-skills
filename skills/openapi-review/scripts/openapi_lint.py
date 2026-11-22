@@ -67,6 +67,16 @@ RULES = {
     "path-trailing-slash": "Paths should not end with a slash",
     "path-verb": "Paths should name resources, not actions",
     "property-casing": "Schema properties should use one casing style",
+    "enum-casing": "Values of one enum should use one casing style",
+}
+
+ENUM_STYLE_LABEL = {
+    "lower": "a single lowercase word",
+    "snake": "snake_case",
+    "kebab": "kebab-case",
+    "camel": "camelCase",
+    "pascal": "PascalCase",
+    "upper": "UPPER_SNAKE_CASE",
 }
 
 
@@ -154,6 +164,60 @@ def casing(name: str) -> str | None:
     return None
 
 
+def enum_casing(value) -> str | None:
+    """Classify one enum value; None for non-strings and values that are not identifiers.
+
+    A leading ``-`` or ``+`` (sort direction, as in ``-created_at``) is ignored.
+    """
+    if not isinstance(value, str):
+        return None
+    name = value.lstrip("+-")
+    if not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", name):
+        return None
+    letters = [c for c in name if c.isalpha()]
+    if all(c.isupper() for c in letters) and "-" not in name and (len(letters) > 1 or "_" in name):
+        return "upper"
+    if name == name.lower():
+        if "_" in name and "-" not in name:
+            return "snake"
+        if "-" in name and "_" not in name:
+            return "kebab"
+        return "lower" if "_" not in name and "-" not in name else None
+    if "_" in name or "-" in name:
+        return None
+    return "pascal" if name[0].isupper() else "camel"
+
+
+def mixed_enum_styles(values) -> set[str]:
+    """Return the casing styles of ``values`` if they are inconsistent, else an empty set.
+
+    A single lowercase word (``paid``) fits snake_case, kebab-case and camelCase.
+    """
+    styles = {s for s in (enum_casing(v) for v in values) if s}
+    strict = styles - {"lower"}
+    if len(strict) > 1 or ("lower" in styles and strict & {"upper", "pascal"}):
+        return styles
+    return set()
+
+
+def iter_enums(node, location: str, depth: int = 0):
+    """Yield (location, enum list) for every enum in an inline schema.
+
+    ``$ref`` is not followed: component schemas are checked under their own name.
+    """
+    if depth > 20 or not isinstance(node, dict) or "$ref" in node:
+        return
+    if isinstance(node.get("enum"), list):
+        yield location, node["enum"]
+    for name, prop in (node.get("properties") or {}).items():
+        yield from iter_enums(prop, f"{location}.{name}", depth + 1)
+    if isinstance(node.get("items"), dict):
+        yield from iter_enums(node["items"], f"{location}[]", depth + 1)
+    for key in ("allOf", "oneOf", "anyOf"):
+        for index, sub in enumerate(node.get(key) or []):
+            yield from iter_enums(sub, f"{location}.{key}[{index}]", depth + 1)
+
+
 def media_has_example(spec: dict, media: dict) -> bool:
     if not isinstance(media, dict):
         return False
@@ -223,8 +287,14 @@ def lint(spec: dict) -> list[dict]:
     op_ids: dict[str, str] = {}
     id_styles: dict[str, list[str]] = {}
 
+    enum_sites: list[tuple[str, list]] = []
+    for schema_name, schema in (components.get("schemas") or {}).items():
+        enum_sites.extend(iter_enums(schema, f"components.schemas.{schema_name}"))
+
     for path, method, op, params in iter_operations(spec):
         loc = f"{method.upper()} {path}"
+        for param in params:
+            enum_sites.extend(iter_enums(param.get("schema"), f"{loc} parameter {param.get('name')}"))
 
         op_id = op.get("operationId")
         if not op_id:
@@ -359,6 +429,13 @@ def lint(spec: dict) -> list[dict]:
                     loc,
                     f"Property uses {STYLE_LABEL[style]}; most properties use {STYLE_LABEL[dominant]}",
                 )
+
+    # Enum value casing
+    for location, values in enum_sites:
+        styles = mixed_enum_styles(values)
+        if styles:
+            shown = ", ".join(ENUM_STYLE_LABEL[s] for s in sorted(styles))
+            add("enum-casing", "warning", location, f"Enum values mix casing styles ({shown})")
 
     return findings
 
