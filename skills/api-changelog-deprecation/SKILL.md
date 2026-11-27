@@ -51,7 +51,9 @@ Paths such as `scripts/...` and `references/...` are relative to this skill's fo
    python scripts/deprecation_headers.py check openapi.yaml
    ```
 
-   Exit 1 on warnings (missing replacement or sunset date) or errors (sunset in the past).
+   Exit 1 on warnings (missing replacement or sunset date, `x-sunset` on an operation that
+   is not `deprecated: true`) or errors (sunset in the past). `sunset-soon` (info) lists
+   operations whose sunset is within `--soon-days` (default 30): time for the last reminder.
 5. **Measure and notify.** Log calls to deprecated endpoints per client (API key/account),
    email the owners of active clients at announcement, 30 days and 7 days before sunset.
    Consider short "brownouts" (scheduled temporary 410s) before the final removal.
