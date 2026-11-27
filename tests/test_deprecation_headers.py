@@ -107,3 +107,47 @@ def test_cli():
     assert run_script(SCRIPT, "check", str(FIXTURES / "good.yaml"), "--today", "2026-01-01").returncode == 0
     assert run_script(SCRIPT, "check", str(FIXTURES / "bad.yaml")).returncode == 1
     assert run_script(SCRIPT, "--help").returncode == 0
+
+
+def sunset_spec(deprecated=True, sunset="2026-12-15"):
+    op = {
+        "summary": "List items. Use GET /v2/items instead.",
+        "x-sunset": sunset,
+        "responses": {"200": {"description": "ok", "headers": {"Deprecation": {}, "Sunset": {}}}},
+    }
+    if deprecated:
+        op["deprecated"] = True
+    return {"paths": {"/v1/items": {"get": op}}}
+
+
+def test_sunset_soon():
+    today = dep.parse_when("2026-11-27")
+    found = dep.check_spec(sunset_spec(), today=today)
+    assert [(f["rule"], f["severity"]) for f in found] == [("sunset-soon", "info")]
+    assert "18 day(s) away" in found[0]["message"]
+    assert dep.check_spec(sunset_spec(), today=today, soon_days=10) == []
+    assert dep.check_spec(sunset_spec(), today=today, soon_days=0) == []
+    assert dep.check_spec(sunset_spec(sunset="2027-06-01"), today=today) == []
+
+
+def test_sunset_today_is_soon_not_past():
+    found = dep.check_spec(sunset_spec(sunset="2026-11-27"), today=dep.parse_when("2026-11-27"))
+    assert [f["rule"] for f in found] == ["sunset-soon"]
+
+
+def test_sunset_without_deprecated_flag():
+    found = dep.check_spec(sunset_spec(deprecated=False, sunset="2027-06-01"), today=dep.parse_when("2026-11-27"))
+    assert [(f["rule"], f["severity"], f["location"]) for f in found] == [
+        ("sunset-not-deprecated", "warning", "GET /v1/items")
+    ]
+
+
+def test_cli_soon_days(tmp_path):
+    spec = tmp_path / "api.json"
+    spec.write_text(json.dumps(sunset_spec()), encoding="utf-8")
+    out = run_script(SCRIPT, "check", str(spec), "--today", "2026-11-27", "--format", "json")
+    assert out.returncode == 0
+    assert [f["rule"] for f in json.loads(out.stdout)["findings"]] == ["sunset-soon"]
+    assert run_script(SCRIPT, "check", str(spec), "--today", "2026-11-27", "--fail-on", "info").returncode == 1
+    off = run_script(SCRIPT, "check", str(spec), "--today", "2026-11-27", "--soon-days", "0", "--fail-on", "info")
+    assert off.returncode == 0

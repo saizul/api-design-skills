@@ -25,7 +25,7 @@ so they also work in CI.
 | [webhook-design](skills/webhook-design/SKILL.md) | Event envelope, Standard Webhooks/GitHub/Stripe signatures, retries, dedup, versioning; sign/verify CLI and Node/PHP snippets tested against published vectors | "Write an endpoint that verifies Stripe webhooks." |
 | [idempotency-keys](skills/idempotency-keys/SKILL.md) | `Idempotency-Key` contract, fingerprinting, replay, 409/422 rules, Postgres/MySQL/Redis storage, tested reference implementation | "Customers get charged twice when the app retries." |
 | [api-security-review](skills/api-security-review/SKILL.md) | OWASP API Security Top 10 (2023) scan of the spec plus code checks and `rg` patterns for BOLA, BFLA, mass assignment, SSRF | "Security-review our orders API before launch." |
-| [api-changelog-deprecation](skills/api-changelog-deprecation/SKILL.md) | Breaking-change rules, changelog format, deprecation timeline, RFC 9745 `Deprecation` / RFC 8594 `Sunset` headers, OpenAPI checks | "Plan the deprecation of GET /v1/orders/{id}/items." |
+| [api-changelog-deprecation](skills/api-changelog-deprecation/SKILL.md) | Breaking-change rules, changelog format, deprecation timeline, RFC 9745 `Deprecation` / RFC 8594 `Sunset` headers, OpenAPI checks (including sunsets due soon) | "Plan the deprecation of GET /v1/orders/{id}/items." |
 | [api-docs-writer](skills/api-docs-writer/SKILL.md) | Generates Markdown reference docs with curl examples from OpenAPI, then quickstart, auth, error and recipe guides | "Generate docs with curl examples from our spec." |
 
 ## Install

@@ -8,6 +8,8 @@ Subcommands
   check     Check an OpenAPI 3.x document: every deprecated operation or
             parameter should name a replacement, carry a sunset date
             (x-sunset) and document the Deprecation/Sunset response headers.
+            Also reports sunsets due within --soon-days (default 30) and
+            x-sunset on operations that are not marked deprecated.
 
 Exit codes: 0 = ok, 1 = findings or invalid input, 2 = usage or parse error.
 """
@@ -160,7 +162,7 @@ def build_headers(
     return headers, warnings
 
 
-def check_spec(spec: dict, today: datetime | None = None) -> list[dict]:
+def check_spec(spec: dict, today: datetime | None = None, soon_days: int = 30) -> list[dict]:
     today = today or datetime.now(timezone.utc)
     findings: list[dict] = []
 
@@ -169,6 +171,14 @@ def check_spec(spec: dict, today: datetime | None = None) -> list[dict]:
 
     for path, method, op, params in iter_operations(spec):
         loc = f"{method.upper()} {path}"
+        if op.get("x-sunset") and not op.get("deprecated"):
+            add(
+                "sunset-not-deprecated",
+                "warning",
+                loc,
+                f"x-sunset {op.get('x-sunset')} is set but the operation is not marked deprecated: true; "
+                "generated clients and docs will not warn users",
+            )
         if op.get("deprecated"):
             text = f"{op.get('summary', '')} {op.get('description', '')}"
             if not REPLACEMENT_HINT.search(text):
@@ -185,6 +195,14 @@ def check_spec(spec: dict, today: datetime | None = None) -> list[dict]:
                             "error",
                             loc,
                             f"x-sunset {sunset} is in the past: remove the operation or return 410 Gone",
+                        )
+                    elif soon_days > 0 and when - today <= timedelta(days=soon_days):
+                        days = (when - today).days
+                        add(
+                            "sunset-soon",
+                            "info",
+                            loc,
+                            f"x-sunset {sunset} is {days} day(s) away: remind active clients and plan the 410",
                         )
                 except ValueError as exc:
                     add("bad-sunset-date", "error", loc, str(exc))
@@ -248,6 +266,9 @@ def main(argv: list[str] | None = None) -> int:
     c = sub.add_parser("check", help="Check deprecations in an OpenAPI 3.x document")
     c.add_argument("spec")
     c.add_argument("--today", help=argparse.SUPPRESS)
+    c.add_argument(
+        "--soon-days", type=int, default=30, help="report sunsets due within this many days (default 30, 0 = off)"
+    )
     c.add_argument("--format", choices=("text", "json"), default="text")
     c.add_argument("--fail-on", choices=("error", "warning", "info", "never"), default="warning")
     args = parser.parse_args(argv)
@@ -294,7 +315,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     today = parse_when(args.today) if args.today else None
-    findings = check_spec(spec, today)
+    findings = check_spec(spec, today, args.soon_days)
     if args.format == "json":
         print(json.dumps({"findings": findings, "count": len(findings)}, indent=2))
     elif not findings:

@@ -8,6 +8,13 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `api-changelog-deprecation`: `deprecation_headers.py check` reports `sunset-soon` (info) for
+  deprecated operations whose `x-sunset` is within `--soon-days` (default 30, `0` turns it
+  off) and `sunset-not-deprecated` (warning) for operations with `x-sunset` that are not
+  marked `deprecated: true`.
+
+### Added
+
 - `openapi-review`: `enum-casing` rule (warning) for enums whose values mix casing styles,
   such as `[pending, PAID, inReview]`, in component schemas (including nested properties,
   array items and `allOf`/`oneOf`/`anyOf`) and inline parameter schemas.
