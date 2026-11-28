@@ -1,5 +1,5 @@
 # Development and CI dependencies. The skill scripts themselves need only the
 # Python standard library; PyYAML is needed to read YAML OpenAPI specs.
-pyyaml>=6.0
+pyyaml>=6.0.4
 pytest>=8.0
 ruff>=0.6
